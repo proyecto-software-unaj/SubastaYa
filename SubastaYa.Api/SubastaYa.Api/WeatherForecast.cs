@@ -1,4 +1,4 @@
-namespace SubastaYa
+namespace SubastaYa.Api
 {
     public class WeatherForecast
     {
