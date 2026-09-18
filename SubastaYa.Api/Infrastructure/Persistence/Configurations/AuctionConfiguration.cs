@@ -18,12 +18,10 @@ namespace Infrastructure.Persistence.Configurations
                    .IsRequired();
 
             builder.Property(a => a.Description)
-                   .HasMaxLength(2000)
-                   .IsRequired();
+                   .HasMaxLength(2000);
 
             builder.Property(a => a.ImageUrl)
-                   .HasMaxLength(500)
-                   .IsRequired();
+                   .HasMaxLength(500);
 
             builder.Property(a => a.BasePrice)
                    .HasColumnType("decimal(18,2)");
