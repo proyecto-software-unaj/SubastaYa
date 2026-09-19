@@ -18,11 +18,13 @@ namespace Infrastructure.Services
 
         private static readonly TimeSpan AntiSnipingWindow = TimeSpan.FromSeconds(60);
         private static readonly TimeSpan AntiSnipingExtension = TimeSpan.FromMinutes(2);
+        private readonly IAuctionNotifier _notifier;
 
-        public BiddingService(AppDbContext context, AuditService audit)
+        public BiddingService(AppDbContext context, AuditService audit, IAuctionNotifier notifier)
         {
             _context = context;
             _audit = audit;
+            _notifier = notifier;
         }
 
         public async Task<Result<BidDto>> PlaceBidAsync(
@@ -149,6 +151,12 @@ namespace Infrastructure.Services
                 
                 await _context.SaveChangesAsync(ct);
                 await transaction.CommitAsync(ct);
+                await _notifier.BidPlacedAsync(auctionId, amount, BuildAlias(userId), now);
+
+                if (extended)
+                {
+                    await _notifier.AuctionExtendedAsync(auctionId, auction.EndDate);
+                }
 
                 var dto = new BidDto
                 {
@@ -158,17 +166,15 @@ namespace Infrastructure.Services
                     BidderAlias = BuildAlias(userId)
                 };
 
-                
-                _ = extended;
 
                 return Result<BidDto>.Success(dto);
             }
             catch (DbUpdateConcurrencyException)
             {
-                
                 await transaction.RollbackAsync(ct);
+          
+                _context.ChangeTracker.Clear();
 
-               
                 _audit.Register("Bid", auctionId, "BidRejectedConcurrency", userId,
                     new { attemptedAmount = amount });
                 await _context.SaveChangesAsync(ct);
@@ -176,6 +182,20 @@ namespace Infrastructure.Services
                 return Result<BidDto>.Failure(
                     ErrorType.Conflict, "Otra puja se registró primero. Intentá nuevamente.");
             }
+            catch (DbUpdateException)
+            {
+                await transaction.RollbackAsync(ct);
+
+                _context.ChangeTracker.Clear();
+
+                _audit.Register("Bid", auctionId, "BidRejectedConcurrency", userId,
+                    new { attemptedAmount = amount });
+                await _context.SaveChangesAsync(ct);
+
+                return Result<BidDto>.Failure(
+                    ErrorType.Conflict, "Conflicto de concurrencia. Intentá nuevamente.");
+            }
+
         }
 
         public async Task<IReadOnlyList<BidDto>> GetBidsAsync(int auctionId, CancellationToken ct = default)
