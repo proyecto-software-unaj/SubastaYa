@@ -1,6 +1,8 @@
+using Application.Interfaces;
 using Infrastructure;
 using Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using SubastaYa.Api.Hubs;
 using SubastaYa.Api.Workers;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -10,9 +12,15 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddHostedService<AuctionClosingWorker>();
+builder.Services.AddSignalR();
+builder.Services.AddScoped<IAuctionNotifier, SignalRAuctionNotifier>();
 
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.OperationFilter<SubastaYa.Api.Swagger.UserIdHeaderFilter>();
+});
+
 
 var app = builder.Build();
 
@@ -23,16 +31,15 @@ using (var scope = app.Services.CreateScope())
     await DataSeeder.SeedAsync(context);
 }
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
+    app.UseSwagger();      
+    app.UseSwaggerUI();    
 }
 
 app.UseHttpsRedirection();
-
 app.UseAuthorization();
-
 app.MapControllers();
+app.MapHub<AuctionHub>("/hubs/auctions");
 
 app.Run();
