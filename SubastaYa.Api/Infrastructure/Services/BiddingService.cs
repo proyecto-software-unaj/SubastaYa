@@ -171,10 +171,10 @@ namespace Infrastructure.Services
             }
             catch (DbUpdateConcurrencyException)
             {
-                
                 await transaction.RollbackAsync(ct);
+          
+                _context.ChangeTracker.Clear();
 
-               
                 _audit.Register("Bid", auctionId, "BidRejectedConcurrency", userId,
                     new { attemptedAmount = amount });
                 await _context.SaveChangesAsync(ct);
@@ -182,6 +182,20 @@ namespace Infrastructure.Services
                 return Result<BidDto>.Failure(
                     ErrorType.Conflict, "Otra puja se registró primero. Intentá nuevamente.");
             }
+            catch (DbUpdateException)
+            {
+                await transaction.RollbackAsync(ct);
+
+                _context.ChangeTracker.Clear();
+
+                _audit.Register("Bid", auctionId, "BidRejectedConcurrency", userId,
+                    new { attemptedAmount = amount });
+                await _context.SaveChangesAsync(ct);
+
+                return Result<BidDto>.Failure(
+                    ErrorType.Conflict, "Conflicto de concurrencia. Intentá nuevamente.");
+            }
+
         }
 
         public async Task<IReadOnlyList<BidDto>> GetBidsAsync(int auctionId, CancellationToken ct = default)
