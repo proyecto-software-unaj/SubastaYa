@@ -43,7 +43,7 @@ namespace SubastaYa.Api.Controllers
         }
         protected int GetUserId()
         {
-            if (Request.Headers.TryGetValue("X-User-Id", out var raw) &&
+            if (Request.Headers.TryGetValue("UserId", out var raw) &&
                 int.TryParse(raw, out var id))
             {
                 return id;

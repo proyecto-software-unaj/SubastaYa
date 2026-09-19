@@ -1,0 +1,214 @@
+{
+  "info": {
+    "name": "SubastaYa API",
+    "description": "Coleccion de pruebas de la API de SubastaYa. Cubre catalogo, detalle, pujas (200/400/422), billetera y creacion de subastas. El header 'UserId' identifica al usuario (sin auth formal). Variable de coleccion: baseUrl.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5269",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Categorias - Listar",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/categories",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "categories"]
+        },
+        "description": "Devuelve las 4 categorias semilla. Esperado: 200."
+      }
+    },
+    {
+      "name": "Subastas - Listar",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/auctions",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "auctions"]
+        },
+        "description": "Listado completo de subastas. Esperado: 200."
+      }
+    },
+    {
+      "name": "Subastas - Filtrar activas",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/auctions?status=Active",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "auctions"],
+          "query": [
+            { "key": "status", "value": "Active" }
+          ]
+        },
+        "description": "Filtra por estado Active. Otros valores: Scheduled, Finished, Deserted."
+      }
+    },
+    {
+      "name": "Subasta - Detalle",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/auctions/1",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "auctions", "1"]
+        },
+        "description": "Detalle de la subasta 1, con puja actual, sugerencia y ultimas pujas. Esperado: 200 (o 404 si no existe)."
+      }
+    },
+    {
+      "name": "Subasta - Historial de pujas",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/auctions/1/bids",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "auctions", "1", "bids"]
+        },
+        "description": "Historial cronologico de pujas de la subasta 1. Esperado: 200."
+      }
+    },
+    {
+      "name": "Wallet - Balance comprador1",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "UserId", "value": "2" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/wallet/balance",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "wallet", "balance"]
+        },
+        "description": "Balance de comprador1 (UserId 2). Esperado: total 150000 / retenido 45000 / disponible 105000."
+      }
+    },
+    {
+      "name": "Wallet - Balance comprador2",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "UserId", "value": "3" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/wallet/balance",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "wallet", "balance"]
+        },
+        "description": "Balance de comprador2 (UserId 3)."
+      }
+    },
+    {
+      "name": "Puja - Valida (200)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "UserId", "value": "3" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"amount\": 46000\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/auctions/1/bids",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "auctions", "1", "bids"]
+        },
+        "description": "Puja valida de comprador2 sobre la subasta 1. Esperado: 200. Libera al lider anterior y retiene al nuevo."
+      }
+    },
+    {
+      "name": "Puja - Monto bajo (400)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "UserId", "value": "3" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"amount\": 100\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/auctions/1/bids",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "auctions", "1", "bids"]
+        },
+        "description": "Monto menor al minimo valido. Esperado: 400 (Bad Request)."
+      }
+    },
+    {
+      "name": "Puja - Sin fondos (422)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "UserId", "value": "4" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"amount\": 90000\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/auctions/1/bids",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "auctions", "1", "bids"]
+        },
+        "description": "Usuario sinfondos (UserId 4) intenta pujar mas que su saldo. Esperado: 422 (Unprocessable Entity)."
+      }
+    },
+    {
+      "name": "Wallet - Deposito",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "UserId", "value": "4" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"amount\": 100000\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/wallet/deposit",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "wallet", "deposit"]
+        },
+        "description": "Acredita 100000 a sinfondos (UserId 4). Esperado: 200. Queda auditado como ManualCredit."
+      }
+    },
+    {
+      "name": "Subasta - Crear",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "UserId", "value": "1" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Reloj de coleccion\",\n  \"description\": \"Pieza unica, edicion numerada.\",\n  \"imageUrl\": \"https://picsum.photos/seed/watch/400/300\",\n  \"categoryId\": 2,\n  \"basePrice\": 20000,\n  \"minimumIncrement\": 1000,\n  \"startDate\": \"2026-09-19T18:00:00Z\",\n  \"endDate\": \"2026-09-20T18:00:00Z\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/auctions",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "auctions"]
+        },
+        "description": "Crea una subasta como vendedor (UserId 1). Esperado: 201. Valida EndDate > StartDate y montos positivos."
+      }
+    }
+  ]
+}
