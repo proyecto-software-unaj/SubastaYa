@@ -21,6 +21,10 @@ namespace Infrastructure
             services.AddScoped<AuditService>();
             services.AddScoped<IBiddingService, BiddingService>();
             services.AddScoped<IWalletService, WalletService>();
+            services.AddScoped<IAuctionService, AuctionService>();
+            services.AddScoped<ICategoryService, CategoryService>();
+            services.AddScoped<AuctionClosingService>();
+
 
             return services;
         }

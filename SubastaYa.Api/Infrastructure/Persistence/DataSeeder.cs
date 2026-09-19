@@ -50,7 +50,7 @@ namespace Infrastructure.Persistence
                 Name = "Comprador Dos",
                 PasswordHash = "seed",
                 RegisteredAt = now,
-                Wallet = new Wallet { TotalBalance = 200_000m, HeldBalance = 0m }
+                Wallet = new Wallet { TotalBalance = 200_000m, HeldBalance = 8_500m }
             };
 
             var noFunds = new User
@@ -192,6 +192,15 @@ namespace Infrastructure.Persistence
                 Type = LedgerTransactionType.Deposit,
                 Amount = 200_000m,
                 CreatedAt = now.AddDays(-2)
+            });
+
+            context.LedgerTransactions.Add(new LedgerTransaction
+            {
+                WalletId = buyer2.Wallet.Id,
+                Type = LedgerTransactionType.Hold,
+                Amount = 8_500m,
+                CreatedAt = now.AddMinutes(-60),
+                AuctionId = endedWithWinner.Id
             });
 
             context.LedgerTransactions.Add(new LedgerTransaction
