@@ -106,5 +106,41 @@ namespace Infrastructure.Services
 
             return closedCount;
         }
+
+        public async Task<int> ActivateScheduledAuctionsAsync(CancellationToken ct = default)
+        {
+            var now = DateTime.UtcNow;
+
+            
+            var toActivate = await _context.Auctions
+                .Where(a => a.Status == AuctionStatus.Scheduled
+                            && a.StartDate <= now
+                            && a.EndDate > now)
+                .ToListAsync(ct);
+
+            var activatedCount = 0;
+
+            foreach (var auction in toActivate)
+            {
+                await using var transaction = await _context.Database.BeginTransactionAsync(ct);
+                try
+                {
+                    auction.Status = AuctionStatus.Active;
+                    _audit.Register("Auction", auction.Id, "AuctionActivated", null,
+                        new { activatedAt = now });
+
+                    await _context.SaveChangesAsync(ct);
+                    await transaction.CommitAsync(ct);
+                    activatedCount++;
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    
+                    await transaction.RollbackAsync(ct);
+                }
+            }
+
+            return activatedCount;
+        }
     }
 }

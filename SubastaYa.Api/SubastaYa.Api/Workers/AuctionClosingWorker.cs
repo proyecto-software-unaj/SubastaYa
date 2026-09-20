@@ -25,16 +25,22 @@ namespace SubastaYa.Api.Workers
             {
                 try
                 {
-                    
+
                     using var scope = _scopeFactory.CreateScope();
                     var closingService = scope.ServiceProvider.GetRequiredService<AuctionClosingService>();
-
+                
+                    var activated = await closingService.ActivateScheduledAuctionsAsync(stoppingToken);
+                    if (activated > 0)
+                    {
+                        _logger.LogInformation("{Count} subasta(s) activada(s) por el worker.", activated);
+                    }
+                
                     var closed = await closingService.CloseExpiredAuctionsAsync(stoppingToken);
-
                     if (closed > 0)
                     {
                         _logger.LogInformation("{Count} subasta(s) cerrada(s) por el worker.", closed);
                     }
+
                 }
                 catch (Exception ex)
                 {
