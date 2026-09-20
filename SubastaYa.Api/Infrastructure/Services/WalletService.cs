@@ -96,5 +96,36 @@ namespace Infrastructure.Services
                     ErrorType.Conflict, "La billetera fue modificada por otra operación. Intentá nuevamente.");
             }
         }
+
+        public async Task<Result<IReadOnlyList<LedgerTransactionDto>>> GetTransactionsAsync(
+            int userId, CancellationToken ct = default)
+        {
+            var wallet = await _context.Wallets
+                .AsNoTracking()
+                .FirstOrDefaultAsync(w => w.UserId == userId, ct);
+
+            if (wallet is null)
+            {
+                return Result<IReadOnlyList<LedgerTransactionDto>>.Failure(
+                    ErrorType.NotFound, "El usuario no tiene billetera.");
+            }
+
+            var transactions = await _context.LedgerTransactions
+                .AsNoTracking()
+                .Where(t => t.WalletId == wallet.Id)
+                .OrderByDescending(t => t.CreatedAt)
+                .Select(t => new LedgerTransactionDto
+                {
+                    Id = t.Id,
+                    Type = t.Type.ToString(),
+                    Amount = t.Amount,
+                    CreatedAt = t.CreatedAt,
+                    AuctionId = t.AuctionId
+                })
+                .ToListAsync(ct);
+
+            return Result<IReadOnlyList<LedgerTransactionDto>>.Success(transactions);
+        }
+
     }
 }
