@@ -5,6 +5,12 @@ import { useUser } from "../context/UserContext";
 import Countdown from "../components/Countdown";
 import { useAuctionHub } from "../hooks/useAuctionHub";
 
+const statusText = {
+  Scheduled: "Esta subasta todavía no comenzó.",
+  Finished: "Esta subasta ya finalizó.",
+  Deserted: "Esta subasta quedó desierta.",
+};
+
 export default function AuctionDetail() {
   const { id } = useParams();
   const { userId } = useUser();
@@ -144,7 +150,7 @@ export default function AuctionDetail() {
             </form>
           ) : (
             <div className="bg-slate-800 rounded-xl p-5 text-center text-slate-400">
-              Esta subasta no está disponible para pujar (estado: {auction.status}).
+              {statusText[auction.status] ?? "Esta subasta no está disponible para pujar."}
             </div>
           )}
         </div>
@@ -164,7 +170,11 @@ export default function AuctionDetail() {
                   ${bid.amount.toLocaleString("es-AR")}
                 </span>
                 <span className="text-xs text-slate-500">
-                  {new Date(bid.bidDate).toLocaleTimeString("es-AR")}
+                  {new Date(bid.bidDate).toLocaleTimeString("es-AR", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    hour12: false,
+                  })}
                 </span>
               </div>
             ))}
