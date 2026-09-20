@@ -188,5 +188,53 @@ namespace Infrastructure.Services
 
             return await GetAuctionByIdAsync(auction.Id, ct);
         }
+
+        public async Task<IReadOnlyList<AuctionListItemDto>> GetAuctionsBySellerAsync(
+            int sellerId, CancellationToken ct = default)
+        {
+            return await _context.Auctions
+                .AsNoTracking()
+                .Include(a => a.Category)
+                .Include(a => a.Bids)
+                .Where(a => a.SellerId == sellerId)
+                .OrderByDescending(a => a.StartDate)
+                .Select(a => new AuctionListItemDto
+                {
+                    Id = a.Id,
+                    Title = a.Title,
+                    ImageUrl = a.ImageUrl,
+                    CategoryName = a.Category.Name,
+                    CurrentHighestBid = a.Bids.Any() ? a.Bids.Max(b => b.Amount) : a.BasePrice,
+                    BidCount = a.Bids.Count,
+                    EndDate = a.EndDate,
+                    Status = a.Status.ToString()
+                })
+                .ToListAsync(ct);
+        }
+
+        public async Task<IReadOnlyList<AuctionListItemDto>> GetAuctionsWithUserBidsAsync(
+            int userId, CancellationToken ct = default)
+        {
+           
+            return await _context.Auctions
+                .AsNoTracking()
+                .Include(a => a.Category)
+                .Include(a => a.Bids)
+                .Where(a => a.Bids.Any(b => b.UserId == userId))
+                .OrderByDescending(a => a.StartDate)
+                .Select(a => new AuctionListItemDto
+                {
+                    Id = a.Id,
+                    Title = a.Title,
+                    ImageUrl = a.ImageUrl,
+                    CategoryName = a.Category.Name,
+                    CurrentHighestBid = a.Bids.Any() ? a.Bids.Max(b => b.Amount) : a.BasePrice,
+                    BidCount = a.Bids.Count,
+                    EndDate = a.EndDate,
+                    Status = a.Status.ToString()
+                })
+                .ToListAsync(ct);
+        }
+
     }
 }
