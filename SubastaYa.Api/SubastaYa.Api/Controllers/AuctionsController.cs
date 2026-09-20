@@ -72,5 +72,24 @@ namespace SubastaYa.Api.Controllers
             var result = await _biddingService.PlaceBidAsync(id, userId, request.Amount, ct);
             return HandleResult(result);
         }
+
+        // GET /api/auctions/mine  
+        [HttpGet("mine")]
+        public async Task<ActionResult<IReadOnlyList<AuctionListItemDto>>> GetMyAuctions(CancellationToken ct)
+        {
+            var userId = GetUserId();
+            var result = await _auctionService.GetAuctionsBySellerAsync(userId, ct);
+            return Ok(result);
+        }
+
+        // GET /api/auctions/participating  
+        [HttpGet("participating")]
+        public async Task<ActionResult<IReadOnlyList<AuctionListItemDto>>> GetParticipating(CancellationToken ct)
+        {
+            var userId = GetUserId();
+            var result = await _auctionService.GetAuctionsWithUserBidsAsync(userId, ct);
+            return Ok(result);
+        }
+
     }
 }

@@ -1,18 +1,28 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { UserProvider } from "./context/UserContext";
+import Layout from "./components/Layout";
+import Catalog from "./pages/Catalog";
+import Wallet from "./pages/Wallet";
+import Publish from "./pages/Publish";
+import MyActivity from "./pages/MyActivity";
+import AuctionDetail from "./pages/AuctionDetail";
 
 function App() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-900">
-      <h1 className="text-4xl font-bold text-emerald-400">
-        SubastaYa Front
-      </h1>
-    </div>
-  )
+    <UserProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Layout />}>
+            <Route index element={<Catalog />} />
+            <Route path="auctions/:id" element={<AuctionDetail />} />
+            <Route path="wallet" element={<Wallet />} />
+            <Route path="publish" element={<Publish />} />
+            <Route path="my-activity" element={<MyActivity />} />
+          </Route>
+        </Routes>
+      </BrowserRouter>
+    </UserProvider>
+  );
 }
 
-export default App
-
+export default App;
