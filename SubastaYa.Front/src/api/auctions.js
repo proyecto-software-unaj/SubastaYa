@@ -21,3 +21,7 @@ export function getCategories() {
 export function placeBid(auctionId, amount) {
   return api.post(`/api/auctions/${auctionId}/bids`, { amount });
 }
+
+export function createAuction(data) {
+  return api.post("/api/auctions", data);
+}
