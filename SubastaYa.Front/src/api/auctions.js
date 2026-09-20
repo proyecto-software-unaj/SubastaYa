@@ -25,3 +25,12 @@ export function placeBid(auctionId, amount) {
 export function createAuction(data) {
   return api.post("/api/auctions", data);
 }
+
+export function getMyAuctions() {
+  return api.get("/api/auctions/mine");
+}
+
+export function getParticipatingAuctions() {
+  return api.get("/api/auctions/participating");
+}
+

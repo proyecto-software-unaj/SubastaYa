@@ -16,5 +16,8 @@ namespace Application.Interfaces
 
         Task<Result<AuctionDetailDto>> CreateAuctionAsync(
             int sellerId, CreateAuctionRequest request, CancellationToken ct = default);
+        Task<IReadOnlyList<AuctionListItemDto>> GetAuctionsBySellerAsync(int sellerId, CancellationToken ct = default);
+        Task<IReadOnlyList<AuctionListItemDto>> GetAuctionsWithUserBidsAsync(int userId, CancellationToken ct = default);
+
     }
 }
