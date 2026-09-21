@@ -1,60 +1,70 @@
 import { useEffect, useState } from "react";
-import { getBalance, deposit } from "../api/wallet";
+import { getBalance, deposit, getTransactions } from "../api/wallet";
 import { useUser } from "../context/UserContext";
+import toast from "react-hot-toast";
+
+const typeInfo = {
+  Deposit: { label: "Depósito", color: "text-emerald-400", sign: "+" },
+  Hold: { label: "Retención", color: "text-amber-400", sign: "−" },
+  Release: { label: "Liberación", color: "text-sky-400", sign: "+" },
+  Payment: { label: "Pago (subasta ganada)", color: "text-rose-400", sign: "−" },
+  Collection: { label: "Cobro (venta)", color: "text-emerald-400", sign: "+" },
+};
 
 export default function Wallet() {
   const { userId } = useUser();
   const [balance, setBalance] = useState(null);
+  const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   const [amount, setAmount] = useState("");
   const [depositing, setDepositing] = useState(false);
-  const [message, setMessage] = useState(null);
 
-
-  const loadBalance = () => {
+  
+  const loadData = () => {
     setLoading(true);
     setError(null);
-    getBalance()
-      .then(setBalance)
+    Promise.all([getBalance(), getTransactions()])
+      .then(([bal, txs]) => {
+        setBalance(bal);
+        setTransactions(txs);
+      })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   };
 
-  
   useEffect(() => {
-    loadBalance();
+    loadData();
   }, [userId]);
 
   const handleDeposit = async (e) => {
     e.preventDefault();
-    setMessage(null);
 
     const value = Number(amount);
     if (!value || value <= 0) {
-      setMessage({ type: "error", text: "Ingresá un monto positivo." });
+      toast.error("Ingresá un monto positivo.");
       return;
     }
 
     setDepositing(true);
     try {
-      const updated = await deposit(value);
-      setBalance(updated);
+      await deposit(value);
       setAmount("");
-      setMessage({ type: "success", text: `Se acreditaron $${value.toLocaleString("es-AR")}.` });
+      toast.success(`Se acreditaron $${value.toLocaleString("es-AR")}.`);
+      loadData();
     } catch (err) {
-      setMessage({ type: "error", text: err.message });
+      toast.error(err.message);
     } finally {
       setDepositing(false);
     }
   };
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-8">
+    <div className="max-w-4xl mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold text-white mb-6">Mi billetera</h1>
 
-      {loading && <p className="text-slate-400">Cargando saldo...</p>}
+      {loading && <p className="text-slate-400">Cargando...</p>}
       {error && <p className="text-rose-400">Error: {error}</p>}
 
       {balance && (
@@ -67,12 +77,11 @@ export default function Wallet() {
           </div>
 
           {/* Formulario de carga */}
-          <div className="bg-slate-800 rounded-xl p-6">
+          <div className="bg-slate-800 rounded-xl p-6 mb-8">
             <h2 className="text-lg font-semibold text-white mb-4">Cargar saldo</h2>
             <form onSubmit={handleDeposit} className="flex gap-3">
               <input
                 type="number"
-                min="1"
                 step="0.01"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
@@ -88,11 +97,40 @@ export default function Wallet() {
                 {depositing ? "Cargando..." : "Depositar"}
               </button>
             </form>
+          </div>
 
-            {message && (
-              <p className={`mt-3 text-sm ${message.type === "success" ? "text-emerald-400" : "text-rose-400"}`}>
-                {message.text}
-              </p>
+          {/* Historial de movimientos */}
+          <div className="bg-slate-800 rounded-xl p-6">
+            <h2 className="text-lg font-semibold text-white mb-4">Historial de movimientos</h2>
+            {transactions.length === 0 ? (
+              <p className="text-slate-400">Todavía no hay movimientos.</p>
+            ) : (
+              <div className="divide-y divide-slate-700">
+                {transactions.map((tx) => {
+                  const info = typeInfo[tx.type] ?? { label: tx.type, color: "text-slate-300", sign: "" };
+                  return (
+                    <div key={tx.id} className="flex items-center justify-between py-3">
+                      <div>
+                        <p className="text-slate-200">{info.label}</p>
+                        <p className="text-xs text-slate-500">
+                          {new Date(tx.createdAt).toLocaleString("es-AR", {
+                            day: "2-digit",
+                            month: "2-digit",
+                            year: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            hour12: false,
+                          })}
+                          {tx.auctionId ? ` · Subasta #${tx.auctionId}` : ""}
+                        </p>
+                      </div>
+                      <span className={`font-semibold ${info.color}`}>
+                        {info.sign}${tx.amount.toLocaleString("es-AR")}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
             )}
           </div>
         </>
@@ -100,7 +138,6 @@ export default function Wallet() {
     </div>
   );
 }
-
 
 function MetricCard({ label, value, color }) {
   return (

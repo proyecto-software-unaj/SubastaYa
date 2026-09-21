@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
+﻿
 namespace Application.DTOs.Auctions
 {
     public class AuctionListItemDto
@@ -12,6 +9,7 @@ namespace Application.DTOs.Auctions
         public string CategoryName { get; set; } = string.Empty;
         public decimal CurrentHighestBid { get; set; }
         public int BidCount { get; set; }
+        public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
         public string Status { get; set; } = string.Empty;
     }

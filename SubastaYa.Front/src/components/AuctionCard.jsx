@@ -37,8 +37,10 @@ export default function AuctionCard({ auction }) {
               </p>
             </div>
             <div className="text-right">
-              <p className="text-xs text-slate-400">{auction.bidCount} ofertas</p>
-              <Countdown endDate={auction.endDate} />
+              <p className="text-xs text-slate-400">
+                {auction.status === "Scheduled" ? "Comienza en" : `${auction.bidCount} ofertas`}
+              </p>
+              <Countdown endDate={auction.status === "Scheduled" ? auction.startDate : auction.endDate} />
             </div>
           </div>
         </div>

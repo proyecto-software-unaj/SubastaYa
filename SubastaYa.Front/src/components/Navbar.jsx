@@ -1,30 +1,36 @@
-import { Link } from "react-router-dom";
+import { Link, NavLink } from "react-router-dom";
 import { useUser } from "../context/UserContext";
+import logo from "../assets/logo.png";
+
+const navLinkClass = ({ isActive }) =>
+  isActive
+    ? "text-white font-semibold"
+    : "text-slate-300 hover:text-white";
 
 export default function Navbar() {
   const { userId, changeUser, users } = useUser();
 
   return (
-    <nav className="bg-slate-800 border-b border-slate-700">
+    <nav className="bg-slate-800 border-b border-slate-700 sticky top-0 z-40 shadow-lg">
       <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-6">
-          <Link to="/" className="text-xl font-bold text-emerald-400">
-            SubastaYa
+          <Link to="/" className="flex items-center">
+            <img src={logo} alt="SubastaYa" className="h-9 w-auto" />
           </Link>
-          <div className="flex gap-4 text-sm">
-            <Link to="/" className="text-slate-300 hover:text-white">
-              Catálogo
-            </Link>
-            <Link to="/wallet" className="text-slate-300 hover:text-white">
-              Billetera
-            </Link>
-            <Link to="/publish" className="text-slate-300 hover:text-white">
-              Publicar
-            </Link>
-            <Link to="/my-activity" className="text-slate-300 hover:text-white">
-              Mis actividades
-            </Link>
-          </div>
+            <div className="flex gap-4 text-sm">
+              <NavLink to="/" end className={navLinkClass}>
+                Catálogo
+              </NavLink>
+              <NavLink to="/wallet" className={navLinkClass}>
+                Billetera
+              </NavLink>
+              <NavLink to="/publish" className={navLinkClass}>
+                Publicar
+              </NavLink>
+              <NavLink to="/my-activity" className={navLinkClass}>
+                Mis actividades
+              </NavLink>
+            </div>
         </div>
 
         {/* Selector de usuario (demo) */}

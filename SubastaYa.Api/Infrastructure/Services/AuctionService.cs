@@ -76,6 +76,7 @@ namespace Infrastructure.Services
                     CategoryName = a.Category.Name,
                     CurrentHighestBid = a.Bids.Any() ? a.Bids.Max(b => b.Amount) : a.BasePrice,
                     BidCount = a.Bids.Count,
+                    StartDate = a.StartDate,
                     EndDate = a.EndDate,
                     Status = a.Status.ToString()
                 })
@@ -206,6 +207,7 @@ namespace Infrastructure.Services
                     CategoryName = a.Category.Name,
                     CurrentHighestBid = a.Bids.Any() ? a.Bids.Max(b => b.Amount) : a.BasePrice,
                     BidCount = a.Bids.Count,
+                    StartDate = a.StartDate,
                     EndDate = a.EndDate,
                     Status = a.Status.ToString()
                 })
@@ -230,6 +232,7 @@ namespace Infrastructure.Services
                     CategoryName = a.Category.Name,
                     CurrentHighestBid = a.Bids.Any() ? a.Bids.Max(b => b.Amount) : a.BasePrice,
                     BidCount = a.Bids.Count,
+                    StartDate = a.StartDate,
                     EndDate = a.EndDate,
                     Status = a.Status.ToString()
                 })

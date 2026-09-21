@@ -10,5 +10,7 @@ namespace Application.Interfaces
     {
         Task<Result<WalletBalanceDto>> GetBalanceAsync(int userId, CancellationToken ct = default);
         Task<Result<WalletBalanceDto>> DepositAsync(int userId, decimal amount, CancellationToken ct = default);
+        Task<Result<IReadOnlyList<LedgerTransactionDto>>> GetTransactionsAsync(int userId, CancellationToken ct = default);
+
     }
 }
