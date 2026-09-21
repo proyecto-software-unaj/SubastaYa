@@ -217,7 +217,7 @@ La sala de subasta se conecta al hub SignalR (`/hubs/auctions`) y se une al grup
 subasta. Cuando otro usuario puja o se dispara la extensión anti-sniping, la vista se
 actualiza sola, sin recargar.
 
-## Mejoras futuras (opcionales)
+## Mejoras futuras
 
 - Autenticación real con login y JWT (reemplazaría el selector de usuario y el header `UserId`).
 - Carga de imágenes propias en la publicación (subida de archivos con sugerencia 400x300)
