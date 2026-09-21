@@ -1,16 +1,61 @@
-# React + Vite
+# SubastaYa.Front
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Frontend de **SubastaYa**: aplicación en React (Vite) + Tailwind CSS que consume la API
+REST y se conecta al hub de SignalR para actualizaciones en tiempo real.
 
-Currently, two official plugins are available:
+> La documentación completa del proyecto (backend, base de datos, endpoints, reglas de
+> negocio y detalle del frontend) está en el **README principal** de la raíz:
+> [`../README.md`](../README.md).
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Stack
 
-## React Compiler
+- React 19 + Vite
+- Tailwind CSS 4
+- React Router (navegación)
+- @microsoft/signalr (tiempo real)
+- react-hot-toast (notificaciones)
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Requisitos
 
-## Expanding the Oxlint configuration
+- Node.js 18+ (probado con Node 24 y npm 12)
+- El backend de SubastaYa corriendo (por defecto en `http://localhost:5269`)
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+## Puesta en marcha
+
+```bash
+npm install
+npm run dev
+```
+
+Queda disponible en `http://localhost:5173`. Ese origen ya está habilitado en la política
+CORS de la API.
+
+La URL del backend se configura en `.env`:
+
+```
+VITE_API_URL=http://localhost:5269
+```
+
+## Scripts
+
+| Comando | Descripción |
+|---------|-------------|
+| `npm run dev` | Servidor de desarrollo con HMR |
+| `npm run build` | Build de producción en `dist/` |
+| `npm run preview` | Sirve localmente el build de producción |
+
+## Pantallas (módulos)
+
+- **Catálogo** (`/`): listado de subastas con filtros por estado, categoría y orden;
+  contador regresivo por card (hasta el cierre, o hasta el inicio si es próxima).
+- **Sala de subasta** (`/auctions/:id`): temporizador, puja actual, indicador de
+  liderando/superado, historial de pujas y actualización en tiempo real vía SignalR.
+- **Billetera** (`/wallet`): saldos (total, retenido, disponible), carga de saldo e
+  historial de movimientos.
+- **Publicar** (`/publish`): formulario de creación con validaciones.
+- **Mis actividades** (`/my-activity`): "Mis compras/pujas" y "Mis publicaciones".
+
+## Identificación de usuario
+
+No hay autenticación formal. Un selector (arriba a la derecha) permite cambiar entre los
+4 usuarios semilla; el elegido se envía en el header `UserId` de cada petición.
