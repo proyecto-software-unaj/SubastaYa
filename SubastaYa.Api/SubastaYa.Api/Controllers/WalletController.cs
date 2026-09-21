@@ -28,5 +28,14 @@ namespace SubastaYa.Api.Controllers
             var result = await _walletService.DepositAsync(userId, request.Amount, ct);
             return HandleResult(result);
         }
+
+        // GET /api/wallet/transactions 
+        [HttpGet("transactions")]
+        public async Task<ActionResult<IReadOnlyList<LedgerTransactionDto>>> GetTransactions(CancellationToken ct)
+        {
+            var userId = GetUserId();
+            var result = await _walletService.GetTransactionsAsync(userId, ct);
+            return HandleResult(result);
+        }
     }
 }

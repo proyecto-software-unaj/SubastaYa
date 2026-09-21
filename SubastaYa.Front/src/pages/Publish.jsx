@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 import { createAuction, getCategories } from "../api/auctions";
 
 function nowForInput() {
@@ -12,7 +13,6 @@ export default function Publish() {
   const navigate = useNavigate();
   const [categories, setCategories] = useState([]);
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState(null);
 
   const [form, setForm] = useState({
     title: "",
@@ -59,11 +59,10 @@ export default function Publish() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(null);
 
     const validationError = validate();
     if (validationError) {
-      setError(validationError);
+      toast.error(validationError);
       return;
     }
 
@@ -81,9 +80,10 @@ export default function Publish() {
       };
 
       const created = await createAuction(payload);
+      toast.success("Subasta publicada.");
       navigate(`/auctions/${created.id}`);
     } catch (err) {
-      setError(err.message);
+      toast.error(err.message);
     } finally {
       setSubmitting(false);
     }
@@ -143,8 +143,6 @@ export default function Publish() {
               className="w-full bg-slate-700 text-white rounded-lg px-3 py-2" />
           </Field>
         </div>
-
-        {error && <p className="text-rose-400 text-sm">{error}</p>}
 
         <button type="submit" disabled={submitting}
           className="w-full bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-white font-semibold rounded-lg py-2 transition-colors">

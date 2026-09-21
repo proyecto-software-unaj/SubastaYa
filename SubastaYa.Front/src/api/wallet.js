@@ -7,3 +7,7 @@ export function getBalance() {
 export function deposit(amount) {
   return api.post("/api/wallet/deposit", { amount });
 }
+
+export function getTransactions() {
+  return api.get("/api/wallet/transactions");
+}

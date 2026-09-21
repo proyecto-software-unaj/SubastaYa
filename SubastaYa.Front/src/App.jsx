@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Toaster } from "react-hot-toast";
 import { UserProvider } from "./context/UserContext";
 import Layout from "./components/Layout";
 import Catalog from "./pages/Catalog";
@@ -21,6 +22,16 @@ function App() {
           </Route>
         </Routes>
       </BrowserRouter>
+
+      {/* Contenedor global de notificaciones */}
+      <Toaster
+        position="bottom-right"
+        toastOptions={{
+          style: { background: "#1e293b", color: "#fff" },
+          success: { iconTheme: { primary: "#10b981", secondary: "#fff" } },
+          error: { iconTheme: { primary: "#f43f5e", secondary: "#fff" } },
+        }}
+      />
     </UserProvider>
   );
 }

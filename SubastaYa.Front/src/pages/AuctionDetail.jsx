@@ -1,9 +1,16 @@
 import { useEffect, useState, useCallback } from "react";
 import { useParams } from "react-router-dom";
+import toast from "react-hot-toast";
 import { getAuctionById, placeBid } from "../api/auctions";
 import { useUser } from "../context/UserContext";
-import Countdown from "../components/Countdown";
 import { useAuctionHub } from "../hooks/useAuctionHub";
+import Countdown from "../components/Countdown";
+
+const statusText = {
+  Scheduled: "Esta subasta todavía no comenzó.",
+  Finished: "Esta subasta ya finalizó.",
+  Deserted: "Esta subasta quedó desierta.",
+};
 
 export default function AuctionDetail() {
   const { id } = useParams();
@@ -15,14 +22,11 @@ export default function AuctionDetail() {
 
   const [bidAmount, setBidAmount] = useState("");
   const [placing, setPlacing] = useState(false);
-  const [feedback, setFeedback] = useState(null);
 
-  
   const loadAuction = useCallback(() => {
     getAuctionById(id)
       .then((data) => {
         setAuction(data);
-        
         setBidAmount(String(data.suggestedNextBid));
       })
       .catch((err) => setError(err.message))
@@ -39,33 +43,30 @@ export default function AuctionDetail() {
       loadAuction();
     },
     onAuctionExtended: () => {
-      setFeedback({ type: "success", text: "⏱️ La subasta se extendió porque hubo una oferta en los últimos minutos." });
+      toast("La subasta se extendió porque hubo una oferta en los últimos minutos.", { icon: "⏱️" });
       loadAuction();
     },
   });
 
   const handleBid = async (e) => {
     e.preventDefault();
-    setFeedback(null);
 
     const value = Number(bidAmount);
     if (!value || value <= 0) {
-      setFeedback({ type: "error", text: "Ingresá un monto válido." });
+      toast.error("Ingresá un monto válido.");
       return;
     }
 
     setPlacing(true);
     try {
       await placeBid(id, value);
-      setFeedback({ type: "success", text: "¡Puja registrada!" });
-      loadAuction(); 
+      toast.success("¡Puja registrada!");
+      loadAuction();
     } catch (err) {
-      
       let text = err.message;
       if (err.status === 409) text = "Conflicto: otra puja se registró primero o la subasta cambió.";
       if (err.status === 422) text = "Saldo insuficiente para esta puja.";
-      if (err.status === 400) text = err.message; 
-      setFeedback({ type: "error", text });
+      toast.error(text);
     } finally {
       setPlacing(false);
     }
@@ -75,7 +76,6 @@ export default function AuctionDetail() {
   if (error) return <div className="max-w-5xl mx-auto px-4 py-8 text-rose-400">Error: {error}</div>;
   if (!auction) return null;
 
-  
   const isLeading = auction.currentWinnerId === userId;
   const isActive = auction.status === "Active";
 
@@ -94,9 +94,11 @@ export default function AuctionDetail() {
         <div className="space-y-4">
           {/* Temporizador */}
           <div className="bg-slate-800 rounded-xl p-5 text-center">
-            <p className="text-sm text-slate-400 mb-1">Tiempo restante</p>
+            <p className="text-sm text-slate-400 mb-1">
+              {auction.status === "Scheduled" ? "Comienza en" : "Tiempo restante"}
+            </p>
             <div className="text-3xl">
-              <Countdown endDate={auction.endDate} />
+              <Countdown endDate={auction.status === "Scheduled" ? auction.startDate : auction.endDate} />
             </div>
           </div>
 
@@ -135,16 +137,10 @@ export default function AuctionDetail() {
               >
                 {placing ? "Enviando..." : isLeading ? "Ya sos el líder" : "Pujar"}
               </button>
-
-              {feedback && (
-                <p className={`text-sm ${feedback.type === "success" ? "text-emerald-400" : "text-rose-400"}`}>
-                  {feedback.text}
-                </p>
-              )}
             </form>
           ) : (
             <div className="bg-slate-800 rounded-xl p-5 text-center text-slate-400">
-              Esta subasta no está disponible para pujar (estado: {auction.status}).
+              {statusText[auction.status] ?? "Esta subasta no está disponible para pujar."}
             </div>
           )}
         </div>
@@ -164,7 +160,11 @@ export default function AuctionDetail() {
                   ${bid.amount.toLocaleString("es-AR")}
                 </span>
                 <span className="text-xs text-slate-500">
-                  {new Date(bid.bidDate).toLocaleTimeString("es-AR")}
+                  {new Date(bid.bidDate).toLocaleTimeString("es-AR", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    hour12: false,
+                  })}
                 </span>
               </div>
             ))}
@@ -174,4 +174,3 @@ export default function AuctionDetail() {
     </div>
   );
 }
-

@@ -19,7 +19,7 @@ SubastaYa/
 │   ├── Application/        Contratos (interfaces), DTOs y patrón Result
 │   ├── Infrastructure/     DbContext, Fluent API, migraciones, seed y servicios
 │   └── SubastaYa.Api/      API REST, SignalR Hub, worker de cierre y Swagger
-└── SubastaYa.Front/        Frontend (en desarrollo)
+└── SubastaYa.Front/        Frontend (React + Vite + Tailwind)
 ```
 
 ## Arquitectura del backend
@@ -157,3 +157,69 @@ individual.
 
 ## Frontend
 
+Aplicación en React (Vite) + Tailwind CSS que consume la API de forma asíncrona.
+Vive en `SubastaYa.Front/`.
+
+### Stack
+
+- React 19 + Vite
+- Tailwind CSS 4
+- React Router (navegación)
+- @microsoft/signalr (tiempo real)
+- react-hot-toast (notificaciones)
+
+### Requisitos
+
+- Node.js 18+ (probado con Node 24 y npm 12)
+
+### Levantar el frontend
+
+Desde `SubastaYa.Front/`:
+
+```bash
+npm install
+npm run dev
+```
+
+Queda disponible en `http://localhost:5173` y requiere que el backend esté corriendo
+(ese origen ya está habilitado en la política CORS de la API).
+
+La URL del backend se configura en `SubastaYa.Front/.env`:
+
+```
+VITE_API_URL=http://localhost:5269
+```
+
+### Identificación de usuario
+
+No hay autenticación formal. El frontend incluye un selector de usuario (arriba a la
+derecha) que permite cambiar entre los 4 usuarios semilla. El usuario elegido se envía en
+el header `UserId` de cada petición. Esto facilita probar el escrow: pujar con un usuario,
+cambiar a otro y observar la liberación/retención de saldo.
+
+### Pantallas (módulos)
+
+- **Catálogo** (`/`): listado de subastas con filtros por estado, categoría y orden.
+  Cada card muestra un contador regresivo (tiempo hasta el cierre, o hasta el inicio si la
+  subasta es próxima) que cambia de color en el último minuto.
+- **Sala de subasta** (`/auctions/:id`): temporizador, puja actual, indicador de
+  liderando/superado, consola de puja con sugerencia automática del próximo valor,
+  historial de pujas y actualización en tiempo real vía SignalR.
+- **Billetera** (`/wallet`): panel de saldos (total, retenido, disponible), carga de saldo
+  e historial de movimientos.
+- **Publicar** (`/publish`): formulario de creación con validaciones (fechas coherentes,
+  inicio no en el pasado, precios positivos).
+- **Mis actividades** (`/my-activity`): pestañas de "Mis compras/pujas" y "Mis publicaciones".
+
+### Tiempo real
+
+La sala de subasta se conecta al hub SignalR (`/hubs/auctions`) y se une al grupo de la
+subasta. Cuando otro usuario puja o se dispara la extensión anti-sniping, la vista se
+actualiza sola, sin recargar.
+
+## Mejoras futuras
+
+- Autenticación real con login y JWT (reemplazaría el selector de usuario y el header `UserId`).
+- Carga de imágenes propias en la publicación (subida de archivos con sugerencia 400x300)
+  e imágenes semilla servidas localmente.
+- Historial de movimientos con paginación y filtros.
